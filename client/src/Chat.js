@@ -62,7 +62,8 @@ function Chat({ user }) {
       
       {/* HEADER */}
       <div className="header">
-        Chat App
+        Chatify
+        <small>Connect instantly</small>
         <button onClick={() => setDarkMode(!darkMode)} style={{ marginLeft: 10 }}>
           🌙
         </button>
