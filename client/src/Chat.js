@@ -6,7 +6,7 @@ function Chat({ user }) {
   const [messages, setMessages] = useState([]);
 
   useEffect(() => {
-    const ws = new WebSocket("wss://YOUR-BACKEND-URL");
+    const ws = new WebSocket("https://chatting-app-xd3x.onrender.com");
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
