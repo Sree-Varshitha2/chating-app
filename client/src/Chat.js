@@ -62,7 +62,7 @@ function Chat({ user }) {
       
       {/* HEADER */}
       <div className="header">
-        Chatify
+        Chatify 💬 <br />
         <small>Connect instantly</small>
         <button onClick={() => setDarkMode(!darkMode)} style={{ marginLeft: 10 }}>
           🌙
