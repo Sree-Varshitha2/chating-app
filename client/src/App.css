@@ -1,0 +1,160 @@
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+}
+
+/* LOGIN */
+.login {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 120px;
+  color: white;
+}
+
+.login input {
+  padding: 12px;
+  width: 260px;
+  border-radius: 10px;
+  border: none;
+  margin-bottom: 10px;
+}
+
+.login button {
+  padding: 12px;
+  width: 260px;
+  border: none;
+  border-radius: 10px;
+  background: #ff6a00;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* CHAT */
+.chat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+}
+
+/* HEADER */
+.header {
+  width: 100%;
+  max-width: 450px;
+  background: #007bff;
+  color: white;
+  padding: 15px;
+  text-align: center;
+  font-size: 18px;
+  border-radius: 0 0 15px 15px;
+}
+
+/* MESSAGE AREA */
+.messages {
+  width: 90%;
+  max-width: 450px;
+  height: 400px;
+  background: #ffffff;
+  border-radius: 15px;
+  margin-top: 10px;
+  padding: 10px;
+  overflow-y: auto;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* MESSAGE ROW */
+.msg-row {
+  display: flex;
+  margin: 8px 0;
+}
+
+/* ALIGN RIGHT */
+.right {
+  justify-content: flex-end;
+}
+
+/* BUBBLE */
+.bubble {
+  padding: 10px 15px;
+  border-radius: 20px;
+  max-width: 70%;
+  font-size: 14px;
+}
+
+/* YOUR MESSAGE */
+.you {
+  background: #dcf8c6;
+}
+
+/* OTHER MESSAGE */
+.other {
+  background: #f1f1f1;
+}
+
+/* AVATAR */
+.avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 5px;
+  font-weight: bold;
+}
+
+/* INPUT */
+.input {
+  display: flex;
+  width: 90%;
+  max-width: 450px;
+  margin-top: 10px;
+}
+
+.input input {
+  flex: 1;
+  padding: 12px;
+  border-radius: 20px;
+  border: none;
+}
+
+.input button {
+  margin-left: 5px;
+  padding: 12px 15px;
+  border: none;
+  border-radius: 20px;
+  background: #007bff;
+  color: white;
+  cursor: pointer;
+}
+/* DARK MODE */
+.dark {
+  background: #1e1e1e;
+  color: white;
+}
+
+.dark .messages {
+  background: #2c2c2c;
+  color: white;
+}
+
+.dark .bubble.you {
+  background: #4caf50;
+  color: white;
+}
+
+.dark .bubble.other {
+  background: #555;
+  color: white;
+}
+
+/* TYPING TEXT */
+.typing {
+  font-size: 12px;
+  color: gray;
+  margin: 5px;
+}
