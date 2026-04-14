@@ -88,20 +88,16 @@ body {
 /* BUTTONS */
 button {
   cursor: pointer;
-}
-
-.mic-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
   border: none;
-  background: #f1f1f1;
+  background: #eee;
+  padding: 10px;
+  border-radius: 50%;
 }
 
-.mic-btn.recording {
-  background: red;
-  color: white;
-  transform: scale(1.1);
+/* IMAGE */
+img {
+  max-width: 150px;
+  border-radius: 10px;
 }
 
 /* DARK MODE */
