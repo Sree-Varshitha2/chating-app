@@ -9,6 +9,8 @@ function Chat({ user }) {
   const [showEmoji, setShowEmoji] = useState(false);
   const [typing, setTyping] = useState("");
   const [darkMode, setDarkMode] = useState(false);
+  const [incomingCall, setIncomingCall] = useState(false);
+  const [inCall, setInCall] = useState(false);
 
   const bottomRef = useRef();
 
@@ -18,6 +20,9 @@ function Chat({ user }) {
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
+      if (data.call) {
+  setIncomingCall(true);
+}
 
       // ✍️ typing
       if (data.typing) {
@@ -87,9 +92,9 @@ function Chat({ user }) {
         Chatify 💬
 
         <div className="header-buttons">
-          <button onClick={() => setDarkMode(!darkMode)}>🌙</button>
-          <button>🎥</button>
-          <button>📞</button>
+  <button onClick={() => socket.send(JSON.stringify({ call: "video" }))}>🎥</button>
+  <button onClick={() => socket.send(JSON.stringify({ call: "audio" }))}>📞</button>
+</div>
         </div>
       </div>
 
@@ -115,6 +120,27 @@ function Chat({ user }) {
             </div>
           );
         })}
+{incomingCall && !inCall && (
+  <div className="call-popup">
+    <p>📞 Incoming Call...</p>
+
+    <button onClick={() => {
+      setInCall(true);
+      setIncomingCall(false);
+    }}>Accept</button>
+
+    <button onClick={() => setIncomingCall(false)}>Reject</button>
+  </div>
+)}
+{inCall && (
+  <div className="call-screen">
+    <h2>In Call...</h2>
+
+    <video autoPlay playsInline className="video-box"></video>
+
+    <button onClick={() => setInCall(false)}>End Call</button>
+  </div>
+)}
 
         {/* TYPING */}
         <div className="typing">{typing}</div>
