@@ -1,19 +1,7 @@
 body {
   margin: 0;
-  font-family: 'Segoe UI', sans-serif;
-}
-/* FULL SCREEN CENTER */
-.login {
-  height: 100vh;
-  width: 100%;
-
-  display: flex;
-  justify-content: center;  /* horizontal */
-  align-items: center;      /* vertical */
-
-  position: fixed;
-  top: 0;
-  left: 0;
+  font-family: "Segoe UI", sans-serif;
+  background: #e9f5ff;
 }
 
 /* CHAT */
@@ -102,9 +90,9 @@ body {
 button {
   cursor: pointer;
   border: none;
-  background: #eee;
   padding: 10px;
   border-radius: 50%;
+  background: #eee;
 }
 
 /* IMAGE */
@@ -130,18 +118,14 @@ img {
 .dark .bubble.other {
   background: #555;
 }
+
+/* CALL */
 .call-popup {
   position: fixed;
   bottom: 100px;
   background: white;
   padding: 15px;
   border-radius: 15px;
-  text-align: center;
-}
-
-.call-popup button {
-  margin: 5px;
-  padding: 8px 12px;
 }
 
 .call-screen {
@@ -162,5 +146,4 @@ img {
   width: 300px;
   height: 200px;
   background: #333;
-  margin: 10px;
 }
