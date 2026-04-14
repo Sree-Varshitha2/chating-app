@@ -9,21 +9,43 @@ function Chat({ user }) {
   const [typing, setTyping] = useState("");
   const [darkMode, setDarkMode] = useState(false);
 
+  // 📸 IMAGE
+  const [file, setFile] = useState(null);
+
+  // 📞 CALL
+  const [incomingCall, setIncomingCall] = useState(false);
+  const [callerOffer, setCallerOffer] = useState(null);
+  const [peer, setPeer] = useState(null);
+  const [localStream, setLocalStream] = useState(null);
+  const [isAudioCall, setIsAudioCall] = useState(false);
+
+  // 📜 CALL HISTORY
+  const [callHistory, setCallHistory] = useState([]);
+
   const bottomRef = useRef();
 
   useEffect(() => {
     const ws = new WebSocket("wss://chatting-app-7-ac7f.onrender.com");
 
-    ws.onmessage = (event) => {
+    ws.onmessage = async (event) => {
       const data = JSON.parse(event.data);
 
-      if (data.typing) {
+      if (data.type === "offer") {
+        setIncomingCall(true);
+        setCallerOffer(data.offer);
+        setIsAudioCall(data.audio);
+        setCallHistory(prev => [...prev, "📥 Incoming Call"]);
+      } 
+      else if (data.type === "answer") {
+        await peer?.setRemoteDescription(data.answer);
+      } 
+      else if (data.typing) {
         setTyping(data.user + " is typing...");
         setTimeout(() => setTyping(""), 1000);
-      } else {
+      } 
+      else {
         setMessages((prev) => [...prev, data]);
 
-        // 🔔 sound
         const audio = new Audio(
           "https://www.soundjay.com/buttons/sounds/button-3.mp3"
         );
@@ -32,7 +54,6 @@ function Chat({ user }) {
     };
 
     setSocket(ws);
-
     return () => ws.close();
   }, []);
 
@@ -41,49 +62,168 @@ function Chat({ user }) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // 💬 SEND MESSAGE
   const sendMessage = () => {
-    if (msg.trim() && socket && socket.readyState === WebSocket.OPEN) {
+    if (msg.trim() && socket?.readyState === WebSocket.OPEN) {
       socket.send(JSON.stringify({ user, text: msg }));
       setMsg("");
     }
   };
 
-  // TYPING EVENT
+  // ✍️ TYPING
   const handleTyping = (e) => {
     setMsg(e.target.value);
+    socket?.send(JSON.stringify({ user, typing: true }));
+  };
 
-    if (socket) {
-      socket.send(JSON.stringify({ user, typing: true }));
+  // 📸 SEND IMAGE
+  const sendImage = () => {
+    if (!file || !socket) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      socket.send(JSON.stringify({ user, image: reader.result }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // 🎥 / 🎤 START MEDIA
+  const startMedia = async (audioOnly = false) => {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: !audioOnly,
+      audio: true
+    });
+
+    setLocalStream(stream);
+
+    if (!audioOnly) {
+      document.getElementById("localVideo").srcObject = stream;
     }
   };
 
+  // 📞 START CALL
+  const startCall = async () => {
+    if (!localStream) return alert("Start camera/audio first!");
+
+    const pc = new RTCPeerConnection({
+      iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+    });
+
+    localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+    pc.ontrack = (e) => {
+      if (!isAudioCall) {
+        document.getElementById("remoteVideo").srcObject = e.streams[0];
+      }
+    };
+
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+
+    socket.send(JSON.stringify({
+      type: "offer",
+      offer,
+      audio: isAudioCall
+    }));
+
+    setPeer(pc);
+    setCallHistory(prev => [...prev, "📤 Outgoing Call"]);
+  };
+
+  // ✅ ACCEPT CALL
+  const acceptCall = async () => {
+    const pc = new RTCPeerConnection({
+      iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+    });
+
+    localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+    pc.ontrack = (e) => {
+      if (!isAudioCall) {
+        document.getElementById("remoteVideo").srcObject = e.streams[0];
+      }
+    };
+
+    await pc.setRemoteDescription(callerOffer);
+
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+
+    socket.send(JSON.stringify({ type: "answer", answer }));
+
+    setPeer(pc);
+    setIncomingCall(false);
+  };
+
+  // ❌ REJECT
+  const rejectCall = () => setIncomingCall(false);
+
   return (
     <div className={darkMode ? "chat dark" : "chat"}>
-      
+
       {/* HEADER */}
       <div className="header">
         Chatify 💬 <br />
         <small>Connect instantly</small>
-        <button onClick={() => setDarkMode(!darkMode)} style={{ marginLeft: 10 }}>
-          🌙
-        </button>
+        <button onClick={() => setDarkMode(!darkMode)}>🌙</button>
       </div>
 
-      {/* MESSAGES */}
+      {/* 📜 CALL HISTORY */}
+      <div style={{ margin: 10 }}>
+        <h4>📜 Call History</h4>
+        {callHistory.map((c, i) => <p key={i}>{c}</p>)}
+      </div>
+
+      {/* 📞 BUTTONS */}
+      <div style={{ margin: 10 }}>
+        <button onClick={() => startMedia(false)}>🎥 Camera</button>
+        <button onClick={() => {
+          setIsAudioCall(true);
+          startMedia(true);
+        }}>📞 Audio</button>
+        <button onClick={() => {
+          setIsAudioCall(false);
+          startCall();
+        }}>📞 Video Call</button>
+      </div>
+
+      {/* 📞 INCOMING */}
+      {incomingCall && (
+        <div>
+          <p>Incoming Call...</p>
+          <button onClick={acceptCall}>Accept</button>
+          <button onClick={rejectCall}>Reject</button>
+        </div>
+      )}
+
+      {/* 🎥 VIDEO */}
+      <video id="localVideo" autoPlay muted width="120"></video>
+      <video id="remoteVideo" autoPlay width="120"></video>
+
+      {/* 💬 MESSAGES */}
       <div className="messages">
         {messages.map((m, i) => {
           const isMe = m.user === user;
 
           return (
             <div key={i} className={`msg-row ${isMe ? "right" : ""}`}>
-              {!isMe && <div className="avatar">{m.user[0]}</div>}
-
               <div className={`bubble ${isMe ? "you" : "other"}`}>
                 <b>{isMe ? "You" : m.user}</b><br />
-                {m.text}
-              </div>
 
-              {isMe && <div className="avatar">{user[0]}</div>}
+                {m.text && <span>{m.text}</span>}
+
+                {m.image && (
+                  <img src={m.image} alt="" width="150" />
+                )}
+
+                {isMe && (
+                  <button onClick={() =>
+                    setMessages(messages.filter((_, index) => index !== i))
+                  }>
+                    ❌
+                  </button>
+                )}
+              </div>
             </div>
           );
         })}
@@ -96,20 +236,20 @@ function Chat({ user }) {
       <div className="input">
         <button onClick={() => setShowEmoji(!showEmoji)}>😊</button>
 
-        <input
-          value={msg}
-          onChange={handleTyping}
-          placeholder="Type message..."
-        />
+        <input type="file" accept="image/*"
+          onChange={(e) => setFile(e.target.files[0])} />
+
+        <button onClick={sendImage}>📷</button>
+
+        <input value={msg} onChange={handleTyping} />
 
         <button onClick={sendMessage}>Send</button>
       </div>
 
-      {/* EMOJI PICKER */}
       {showEmoji && (
-        <EmojiPicker
-          onEmojiClick={(e) => setMsg((prev) => prev + e.emoji)}
-        />
+        <EmojiPicker onEmojiClick={(e) =>
+          setMsg(prev => prev + e.emoji)
+        } />
       )}
     </div>
   );
