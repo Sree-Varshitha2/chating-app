@@ -120,6 +120,7 @@ body {
   margin: 0 5px;
 }
 
+/* INPUT BAR */
 .input-bar {
   display: flex;
   align-items: center;
@@ -130,12 +131,36 @@ body {
   padding: 10px;
   background: white;
   border-radius: 30px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
 
+/* INPUT */
 .input-bar input {
   flex: 1;
   border: none;
   outline: none;
+  font-size: 14px;
+}
+
+/* ICON BUTTON */
+.icon-btn {
+  background: #f1f1f1;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+}
+
+/* SEND BUTTON */
+.send-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
 }
 /* DARK MODE */
 .dark {
