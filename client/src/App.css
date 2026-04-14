@@ -262,19 +262,3 @@ body {
   transition: 0.2s;
   user-select: none;
 }
-.mic-btn.recording {
-  background: red !important;
-  color: white;
-  animation: pulse 1s infinite;
-}
-@keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.5);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(255, 0, 0, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
-  }
-}
