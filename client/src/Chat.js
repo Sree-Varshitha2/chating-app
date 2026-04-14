@@ -14,32 +14,34 @@ function Chat({ user }) {
 
   const bottomRef = useRef();
 
-  // 🔌 CONNECT WEBSOCKET
+  // 🔌 SOCKET CONNECTION
   useEffect(() => {
     const ws = new WebSocket("wss://chatting-app-7-ac7f.onrender.com");
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
 
-      // 📞 CALL
       if (data.call) {
         setIncomingCall(true);
         return;
       }
 
-      // ✍️ TYPING
       if (data.typing) {
         setTyping(data.user + " is typing...");
         setTimeout(() => setTyping(""), 1000);
-      } else {
-        setMessages((prev) => [...prev, data]);
-
-        const audio = new Audio(
-          "https://www.soundjay.com/buttons/sounds/button-3.mp3"
-        );
-        audio.play();
+        return;
       }
+
+      setMessages((prev) => [...prev, data]);
+
+      const audio = new Audio(
+        "https://www.soundjay.com/buttons/sounds/button-3.mp3"
+      );
+      audio.play();
     };
+
+    ws.onclose = () => console.log("Socket closed");
+    ws.onerror = (e) => console.log("Socket error", e);
 
     setSocket(ws);
     return () => ws.close();
@@ -52,17 +54,30 @@ function Chat({ user }) {
 
   // 💬 SEND TEXT
   const sendMessage = () => {
-    if (msg.trim() && socket?.readyState === WebSocket.OPEN) {
+    if (!socket || socket.readyState !== 1) return;
+
+    if (msg.trim()) {
       socket.send(JSON.stringify({ user, text: msg }));
       setMsg("");
     }
   };
 
-  // 📸 SEND IMAGE
-  const sendImage = () => {
-    if (!file || !socket) return;
+  // ✍️ TYPING
+  const handleTyping = (e) => {
+    setMsg(e.target.value);
+
+    if (socket && socket.readyState === 1) {
+      socket.send(JSON.stringify({ user, typing: true }));
+    }
+  };
+
+  // 📸 SEND IMAGE (FIXED)
+  const handleImage = (e) => {
+    const f = e.target.files[0];
+    if (!f || !socket || socket.readyState !== 1) return;
 
     const reader = new FileReader();
+
     reader.onload = () => {
       socket.send(
         JSON.stringify({
@@ -71,51 +86,38 @@ function Chat({ user }) {
         })
       );
     };
-    reader.readAsDataURL(file);
-  };
 
-  // ✍️ TYPING
-  const handleTyping = (e) => {
-    setMsg(e.target.value);
-
-    if (socket) {
-      socket.send(JSON.stringify({ user, typing: true }));
-    }
+    reader.readAsDataURL(f);
   };
 
   return (
     <div className={darkMode ? "chat dark" : "chat"}>
-
       {/* HEADER */}
       <div className="header">
         <span>Chatify 💬</span>
 
         <div className="header-buttons">
-
-          {/* 🌙 DARK MODE */}
-          <button
-            className="icon-btn"
-            onClick={() => setDarkMode(!darkMode)}
-          >
+          <button className="icon-btn" onClick={() => setDarkMode(!darkMode)}>
             {darkMode ? "☀️" : "🌙"}
           </button>
 
-          {/* 🎥 VIDEO */}
           <button
             className="icon-btn"
-            onClick={() => socket?.send(JSON.stringify({ call: "video" }))}
+            onClick={() =>
+              socket?.send(JSON.stringify({ call: "video" }))
+            }
           >
             🎥
           </button>
 
-          {/* 📞 AUDIO */}
           <button
             className="icon-btn"
-            onClick={() => socket?.send(JSON.stringify({ call: "audio" }))}
+            onClick={() =>
+              socket?.send(JSON.stringify({ call: "audio" }))
+            }
           >
             📞
           </button>
-
         </div>
       </div>
 
@@ -126,28 +128,38 @@ function Chat({ user }) {
 
           return (
             <div key={i} className={`msg-row ${isMe ? "right" : ""}`}>
-              {!isMe && <div className="avatar">{m.user[0]}</div>}
+              {!isMe && (
+                <div className="avatar">{m.user?.[0]}</div>
+              )}
 
               <div className={`bubble ${isMe ? "you" : "other"}`}>
-                <b>{isMe ? "You" : m.user}</b><br />
+                <b>{isMe ? "You" : m.user}</b>
+                <br />
+
                 {m.text && <span>{m.text}</span>}
                 {m.image && <img src={m.image} alt="img" />}
+
+                {m.audio && (
+                  <audio controls src={m.audio} />
+                )}
               </div>
 
-              {isMe && <div className="avatar">{user[0]}</div>}
+              {isMe && <div className="avatar">{user?.[0]}</div>}
             </div>
           );
         })}
 
-        {/* 📞 INCOMING CALL */}
+        {/* CALL */}
         {incomingCall && !inCall && (
           <div className="call-popup">
             <p>📞 Incoming Call...</p>
 
-            <button onClick={() => {
-              setInCall(true);
-              setIncomingCall(false);
-            }}>
+            <button
+              onClick={() => {
+                setInCall(true);
+                setIncomingCall(false);
+              }}
+            >
               Accept
             </button>
 
@@ -157,25 +169,23 @@ function Chat({ user }) {
           </div>
         )}
 
-        {/* 📞 CALL SCREEN */}
         {inCall && (
           <div className="call-screen">
             <h2>In Call...</h2>
-            <video autoPlay playsInline className="video-box"></video>
-            <button onClick={() => setInCall(false)}>End Call</button>
+            <video autoPlay playsInline className="video-box" />
+            <button onClick={() => setInCall(false)}>
+              End Call
+            </button>
           </div>
         )}
 
-        {/* ✍️ TYPING */}
         <div className="typing">{typing}</div>
 
         <div ref={bottomRef}></div>
       </div>
 
-      {/* INPUT BAR */}
+      {/* INPUT */}
       <div className="input-bar">
-
-        {/* EMOJI */}
         <button
           className="icon-btn"
           onClick={() => setShowEmoji(!showEmoji)}
@@ -183,10 +193,11 @@ function Chat({ user }) {
           😊
         </button>
 
-        {/* CAMERA */}
         <button
           className="icon-btn"
-          onClick={() => document.getElementById("imgInput").click()}
+          onClick={() =>
+            document.getElementById("imgInput").click()
+          }
         >
           📷
         </button>
@@ -196,35 +207,30 @@ function Chat({ user }) {
           type="file"
           accept="image/*"
           style={{ display: "none" }}
-          onChange={(e) => {
-            setFile(e.target.files[0]);
-            sendImage();
-          }}
+          onChange={handleImage}
         />
 
-        {/* TEXT */}
         <input
           value={msg}
           onChange={handleTyping}
           placeholder="Type message..."
         />
 
-        {/* SEND */}
         <button className="send-btn" onClick={sendMessage}>
           ➤
         </button>
-
       </div>
 
-      {/* EMOJI PICKER */}
+      {/* EMOJI */}
       {showEmoji && (
         <div style={{ position: "absolute", bottom: "70px" }}>
           <EmojiPicker
-            onEmojiClick={(e) => setMsg((prev) => prev + e.emoji)}
+            onEmojiClick={(e) =>
+              setMsg((prev) => prev + e.emoji)
+            }
           />
         </div>
       )}
-
     </div>
   );
 }
