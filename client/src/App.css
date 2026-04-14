@@ -2,6 +2,19 @@ body {
   margin: 0;
   font-family: 'Segoe UI', sans-serif;
 }
+/* FULL SCREEN CENTER */
+.login {
+  height: 100vh;
+  width: 100%;
+
+  display: flex;
+  justify-content: center;  /* horizontal */
+  align-items: center;      /* vertical */
+
+  position: fixed;
+  top: 0;
+  left: 0;
+}
 
 /* CHAT */
 .chat {
