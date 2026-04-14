@@ -12,11 +12,6 @@ function Chat({ user }) {
   const [incomingCall, setIncomingCall] = useState(false);
   const [inCall, setInCall] = useState(false);
 
-  // 🎤 VOICE RECORDING ADDED
-  const [isRecording, setIsRecording] = useState(false);
-  const mediaRecorderRef = useRef(null);
-  const audioChunksRef = useRef([]);
-
   const bottomRef = useRef();
 
   // 🔌 CONNECT WEBSOCKET
@@ -88,54 +83,6 @@ function Chat({ user }) {
     }
   };
 
-  // 🎤 START RECORDING
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-      });
-
-      mediaRecorderRef.current = new MediaRecorder(stream);
-      audioChunksRef.current = [];
-
-      mediaRecorderRef.current.ondataavailable = (e) => {
-        audioChunksRef.current.push(e.data);
-      };
-
-      mediaRecorderRef.current.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, {
-          type: "audio/webm",
-        });
-
-        const reader = new FileReader();
-
-        reader.onloadend = () => {
-          socket?.send(
-            JSON.stringify({
-              user,
-              audio: reader.result,
-            })
-          );
-        };
-
-        reader.readAsDataURL(audioBlob);
-      };
-
-      mediaRecorderRef.current.start();
-      setIsRecording(true);
-    } catch (err) {
-      console.log("Mic error:", err);
-    }
-  };
-
-  // ⏹ STOP RECORDING
-  const stopRecording = () => {
-    if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-    }
-  };
-
   return (
     <div className={darkMode ? "chat dark" : "chat"}>
 
@@ -145,15 +92,27 @@ function Chat({ user }) {
 
         <div className="header-buttons">
 
-          <button className="icon-btn" onClick={() => setDarkMode(!darkMode)}>
+          {/* 🌙 DARK MODE */}
+          <button
+            className="icon-btn"
+            onClick={() => setDarkMode(!darkMode)}
+          >
             {darkMode ? "☀️" : "🌙"}
           </button>
 
-          <button className="icon-btn" onClick={() => socket?.send(JSON.stringify({ call: "video" }))}>
+          {/* 🎥 VIDEO */}
+          <button
+            className="icon-btn"
+            onClick={() => socket?.send(JSON.stringify({ call: "video" }))}
+          >
             🎥
           </button>
 
-          <button className="icon-btn" onClick={() => socket?.send(JSON.stringify({ call: "audio" }))}>
+          {/* 📞 AUDIO */}
+          <button
+            className="icon-btn"
+            onClick={() => socket?.send(JSON.stringify({ call: "audio" }))}
+          >
             📞
           </button>
 
@@ -171,14 +130,8 @@ function Chat({ user }) {
 
               <div className={`bubble ${isMe ? "you" : "other"}`}>
                 <b>{isMe ? "You" : m.user}</b><br />
-
                 {m.text && <span>{m.text}</span>}
                 {m.image && <img src={m.image} alt="img" />}
-
-                {/* 🎤 AUDIO MESSAGE */}
-                {m.audio && (
-                  <audio controls src={m.audio} style={{ marginTop: 5 }} />
-                )}
               </div>
 
               {isMe && <div className="avatar">{user[0]}</div>}
@@ -186,7 +139,7 @@ function Chat({ user }) {
           );
         })}
 
-        {/* CALL */}
+        {/* 📞 INCOMING CALL */}
         {incomingCall && !inCall && (
           <div className="call-popup">
             <p>📞 Incoming Call...</p>
@@ -204,6 +157,7 @@ function Chat({ user }) {
           </div>
         )}
 
+        {/* 📞 CALL SCREEN */}
         {inCall && (
           <div className="call-screen">
             <h2>In Call...</h2>
@@ -212,7 +166,7 @@ function Chat({ user }) {
           </div>
         )}
 
-        {/* TYPING */}
+        {/* ✍️ TYPING */}
         <div className="typing">{typing}</div>
 
         <div ref={bottomRef}></div>
@@ -222,12 +176,18 @@ function Chat({ user }) {
       <div className="input-bar">
 
         {/* EMOJI */}
-        <button className="icon-btn" onClick={() => setShowEmoji(!showEmoji)}>
+        <button
+          className="icon-btn"
+          onClick={() => setShowEmoji(!showEmoji)}
+        >
           😊
         </button>
 
         {/* CAMERA */}
-        <button className="icon-btn" onClick={() => document.getElementById("imgInput").click()}>
+        <button
+          className="icon-btn"
+          onClick={() => document.getElementById("imgInput").click()}
+        >
           📷
         </button>
 
@@ -249,29 +209,10 @@ function Chat({ user }) {
           placeholder="Type message..."
         />
 
-        {/* SEND + 🎤 MIC (RIGHT SIDE) */}
-        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <button className="send-btn" onClick={sendMessage}>
-            ➤
-          </button>
-
-          <button
-            onMouseDown={startRecording}
-            onMouseUp={stopRecording}
-            onTouchStart={startRecording}
-            onTouchEnd={stopRecording}
-            style={{
-              width: "40px",
-              height: "40px",
-              borderRadius: "50%",
-              background: isRecording ? "red" : "#ddd",
-              border: "none",
-              cursor: "pointer",
-            }}
-          >
-            🎤
-          </button>
-        </div>
+        {/* SEND */}
+        <button className="send-btn" onClick={sendMessage}>
+          ➤
+        </button>
 
       </div>
 
@@ -288,4 +229,4 @@ function Chat({ user }) {
   );
 }
 
-export default Chat;
+export default Chat;  
