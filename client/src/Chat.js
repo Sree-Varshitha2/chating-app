@@ -173,60 +173,60 @@ function Chat({ user }) {
       </div>
 
       {/* INPUT BAR */}
-      <div className="input-bar">
+<div className="input-bar">
 
-        {/* EMOJI */}
-        <button
-          className="icon-btn"
-          onClick={() => setShowEmoji(!showEmoji)}
-        >
-          😊
-        </button>
+  {/* EMOJI */}
+  <button
+    className="icon-btn"
+    onClick={() => setShowEmoji(!showEmoji)}
+  >
+    😊
+  </button>
 
-        {/* CAMERA */}
-        <button
-          className="icon-btn"
-          onClick={() => document.getElementById("imgInput").click()}
-        >
-          📷
-        </button>
+  {/* CAMERA */}
+  <button
+    className="icon-btn"
+    onClick={() => document.getElementById("imgInput").click()}
+  >
+    📷
+  </button>
 
-        <input
-          id="imgInput"
-          type="file"
-          accept="image/*"
-          style={{ display: "none" }}
-          onChange={(e) => {
-            setFile(e.target.files[0]);
-            sendImage();
-          }}
-        />
+  <input
+    id="imgInput"
+    type="file"
+    accept="image/*"
+    style={{ display: "none" }}
+    onChange={(e) => {
+      setFile(e.target.files[0]);
+      sendImage();
+    }}
+  />
 
-        {/* TEXT */}
-        <input
-          value={msg}
-          onChange={handleTyping}
-          placeholder="Type message..."
-        />
+  {/* TEXT */}
+  <input
+    value={msg}
+    onChange={handleTyping}
+    placeholder="Type message..."
+  />
 
-        {/* SEND */}
-        <button className="send-btn" onClick={sendMessage}>
-          ➤
-        </button>
+  {/* SEND */}
+  <button
+    className="send-btn"
+    onClick={() => {
+      sendMessage();
+      setShowEmoji(false); // close emoji after send
+    }}
+  >
+    ➤
+  </button>
 
-      </div>
+</div>
 
-      {/* EMOJI PICKER */}
-      {showEmoji && (
-        <div style={{ position: "absolute", bottom: "70px" }}>
-          <EmojiPicker
-            onEmojiClick={(e) => setMsg((prev) => prev + e.emoji)}
-          />
-        </div>
-      )}
-
-    </div>
-  );
-}
-
-export default Chat;
+{/* EMOJI PICKER */}
+{showEmoji && (
+  <div className="emoji-box">
+    <EmojiPicker
+      onEmojiClick={(e) => setMsg((prev) => prev + e.emoji)}
+    />
+  </div>
+)}
