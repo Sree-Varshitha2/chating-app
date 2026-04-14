@@ -122,36 +122,33 @@ function Chat({ user }) {
         <div ref={bottomRef}></div>
       </div>
 
-      {/* INPUT AREA */}
-      <div className="input">
+      <div className="input-bar">
 
-        {/* EMOJI BUTTON */}
-        <button onClick={() => setShowEmoji(!showEmoji)}>😊</button>
+  {/* EMOJI */}
+  <button className="icon-btn" onClick={() => setShowEmoji(!showEmoji)}>😊</button>
 
-        {/* IMAGE BUTTON */}
-        <label className="file-btn">
-          📷
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setFile(e.target.files[0])}
-          />
-        </label>
+  {/* CAMERA */}
+  <label className="icon-btn">
+    📷
+    <input
+      type="file"
+      accept="image/*"
+      onChange={(e) => setFile(e.target.files[0])}
+      hidden
+    />
+  </label>
 
-        {/* TEXT INPUT */}
-        <input
-          value={msg}
-          onChange={handleTyping}
-          placeholder="Type message..."
-        />
+  {/* TEXT */}
+  <input
+    value={msg}
+    onChange={handleTyping}
+    placeholder="Type message..."
+  />
 
-        {/* SEND */}
-        <button onClick={sendMessage}>➤</button>
+  {/* SEND */}
+  <button className="send-btn" onClick={sendMessage}>➤</button>
 
-        {/* UPLOAD */}
-        <button onClick={sendImage}>⬆️</button>
-
-      </div>
+</div>
 
       {/* EMOJI PICKER */}
       {showEmoji && (
