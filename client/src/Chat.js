@@ -12,14 +12,14 @@ function Chat({ user }) {
   const [incomingCall, setIncomingCall] = useState(false);
   const [inCall, setInCall] = useState(false);
 
-  // 🎤 VOICE RECORDING
+  // 🎤 VOICE RECORDING ADDED
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
 
   const bottomRef = useRef();
 
-  // 🔌 SOCKET CONNECTION
+  // 🔌 CONNECT WEBSOCKET
   useEffect(() => {
     const ws = new WebSocket("wss://chatting-app-7-ac7f.onrender.com");
 
@@ -44,9 +44,6 @@ function Chat({ user }) {
       }
     };
 
-    ws.onclose = () => console.log("Socket closed");
-    ws.onerror = (e) => console.log("Socket error", e);
-
     setSocket(ws);
     return () => ws.close();
   }, []);
@@ -56,11 +53,9 @@ function Chat({ user }) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // 💬 SEND MESSAGE
+  // 💬 SEND TEXT
   const sendMessage = () => {
-    if (!socket || socket.readyState !== 1) return;
-
-    if (msg.trim()) {
+    if (msg.trim() && socket?.readyState === WebSocket.OPEN) {
       socket.send(JSON.stringify({ user, text: msg }));
       setMsg("");
     }
@@ -68,7 +63,7 @@ function Chat({ user }) {
 
   // 📸 SEND IMAGE
   const sendImage = () => {
-    if (!socket || socket.readyState !== 1 || !file) return;
+    if (!file || !socket) return;
 
     const reader = new FileReader();
     reader.onload = () => {
@@ -86,7 +81,7 @@ function Chat({ user }) {
   const handleTyping = (e) => {
     setMsg(e.target.value);
 
-    if (socket && socket.readyState === 1) {
+    if (socket) {
       socket.send(JSON.stringify({ user, typing: true }));
     }
   };
@@ -155,14 +150,18 @@ function Chat({ user }) {
 
           <button
             className="icon-btn"
-            onClick={() => socket?.send(JSON.stringify({ call: "video" }))}
+            onClick={() =>
+              socket?.send(JSON.stringify({ call: "video" }))
+            }
           >
             🎥
           </button>
 
           <button
             className="icon-btn"
-            onClick={() => socket?.send(JSON.stringify({ call: "audio" }))}
+            onClick={() =>
+              socket?.send(JSON.stringify({ call: "audio" }))
+            }
           >
             📞
           </button>
@@ -227,7 +226,7 @@ function Chat({ user }) {
         <div ref={bottomRef}></div>
       </div>
 
-      {/* INPUT */}
+      {/* INPUT BAR */}
       <div className="input-bar">
 
         <button className="icon-btn" onClick={() => setShowEmoji(!showEmoji)}>
