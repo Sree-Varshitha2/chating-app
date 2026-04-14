@@ -12,25 +12,22 @@ function Chat({ user }) {
   const [incomingCall, setIncomingCall] = useState(false);
   const [inCall, setInCall] = useState(false);
 
-  // 🎤 VOICE
-  const [recording, setRecording] = useState(false);
-  const mediaRecorderRef = useRef(null);
-  const audioChunksRef = useRef([]);
-
   const bottomRef = useRef();
 
-  // 🔌 SOCKET
+  // 🔌 CONNECT WEBSOCKET
   useEffect(() => {
     const ws = new WebSocket("wss://chatting-app-7-ac7f.onrender.com");
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
 
+      // 📞 CALL
       if (data.call) {
         setIncomingCall(true);
         return;
       }
 
+      // ✍️ TYPING
       if (data.typing) {
         setTyping(data.user + " is typing...");
         setTimeout(() => setTyping(""), 1000);
@@ -48,12 +45,12 @@ function Chat({ user }) {
     return () => ws.close();
   }, []);
 
-  // AUTO SCROLL
+  // 🔽 AUTO SCROLL
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // TEXT
+  // 💬 SEND TEXT
   const sendMessage = () => {
     if (msg.trim() && socket?.readyState === WebSocket.OPEN) {
       socket.send(JSON.stringify({ user, text: msg }));
@@ -61,62 +58,29 @@ function Chat({ user }) {
     }
   };
 
-  // IMAGE
+  // 📸 SEND IMAGE
   const sendImage = () => {
     if (!file || !socket) return;
 
     const reader = new FileReader();
     reader.onload = () => {
-      socket.send(JSON.stringify({ user, image: reader.result }));
+      socket.send(
+        JSON.stringify({
+          user,
+          image: reader.result,
+        })
+      );
     };
     reader.readAsDataURL(file);
   };
 
-  // TYPING
+  // ✍️ TYPING
   const handleTyping = (e) => {
     setMsg(e.target.value);
 
-    socket?.send(JSON.stringify({ user, typing: true }));
-  };
-
-  // 🎤 START
-  const startRecording = async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
-    const mediaRecorder = new MediaRecorder(stream);
-    mediaRecorderRef.current = mediaRecorder;
-
-    audioChunksRef.current = [];
-
-    mediaRecorder.ondataavailable = (e) => {
-      if (e.data.size > 0) audioChunksRef.current.push(e.data);
-    };
-
-    mediaRecorder.onstop = () => {
-      const blob = new Blob(audioChunksRef.current, {
-        type: "audio/webm",
-      });
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        socket?.send(
-          JSON.stringify({
-            user,
-            audio: reader.result,
-          })
-        );
-      };
-      reader.readAsDataURL(blob);
-    };
-
-    mediaRecorder.start();
-    setRecording(true);
-  };
-
-  // ⏹ STOP
-  const stopRecording = () => {
-    mediaRecorderRef.current?.stop();
-    setRecording(false);
+    if (socket) {
+      socket.send(JSON.stringify({ user, typing: true }));
+    }
   };
 
   return (
@@ -127,17 +91,31 @@ function Chat({ user }) {
         <span>Chatify 💬</span>
 
         <div className="header-buttons">
-          <button onClick={() => setDarkMode(!darkMode)}>
+
+          {/* 🌙 DARK MODE */}
+          <button
+            className="icon-btn"
+            onClick={() => setDarkMode(!darkMode)}
+          >
             {darkMode ? "☀️" : "🌙"}
           </button>
 
-          <button onClick={() => socket?.send(JSON.stringify({ call: "video" }))}>
+          {/* 🎥 VIDEO */}
+          <button
+            className="icon-btn"
+            onClick={() => socket?.send(JSON.stringify({ call: "video" }))}
+          >
             🎥
           </button>
 
-          <button onClick={() => socket?.send(JSON.stringify({ call: "audio" }))}>
+          {/* 📞 AUDIO */}
+          <button
+            className="icon-btn"
+            onClick={() => socket?.send(JSON.stringify({ call: "audio" }))}
+          >
             📞
           </button>
+
         </div>
       </div>
 
@@ -152,14 +130,8 @@ function Chat({ user }) {
 
               <div className={`bubble ${isMe ? "you" : "other"}`}>
                 <b>{isMe ? "You" : m.user}</b><br />
-
                 {m.text && <span>{m.text}</span>}
                 {m.image && <img src={m.image} alt="img" />}
-                {m.audio && (
-                  <audio controls>
-                    <source src={m.audio} type="audio/webm" />
-                  </audio>
-                )}
               </div>
 
               {isMe && <div className="avatar">{user[0]}</div>}
@@ -167,70 +139,91 @@ function Chat({ user }) {
           );
         })}
 
-        <div className="typing">{typing}</div>
-        <div ref={bottomRef}></div>
-      </div>
+        {/* 📞 INCOMING CALL */}
+        {incomingCall && !inCall && (
+          <div className="call-popup">
+            <p>📞 Incoming Call...</p>
 
-      {/* INPUT WRAPPER (IMPORTANT FIX) */}
-      <div className="input-wrapper">
+            <button onClick={() => {
+              setInCall(true);
+              setIncomingCall(false);
+            }}>
+              Accept
+            </button>
 
-        <div className="input-bar">
-
-          {/* EMOJI */}
-          <button onClick={() => setShowEmoji(!showEmoji)}>
-            😊
-          </button>
-
-          {/* CAMERA */}
-          <button onClick={() => document.getElementById("imgInput").click()}>
-            📷
-          </button>
-
-          <input
-            id="imgInput"
-            type="file"
-            accept="image/*"
-            hidden
-            onChange={(e) => {
-              setFile(e.target.files[0]);
-              sendImage();
-            }}
-          />
-
-          {/* TEXT */}
-          <input
-            value={msg}
-            onChange={handleTyping}
-            placeholder="Type message..."
-          />
-
-          {/* SEND */}
-          <button onClick={sendMessage}>➤</button>
-
-          {/* 🎤 MIC */}
-          <button
-            onMouseDown={startRecording}
-            onMouseUp={stopRecording}
-            onTouchStart={startRecording}
-            onTouchEnd={stopRecording}
-            style={{ color: recording ? "red" : "black" }}
-          >
-            🎤
-          </button>
-        </div>
-
-        {/* EMOJI FLOAT (DOES NOT MOVE UI) */}
-        {showEmoji && (
-          <div className="emoji-popup">
-            <EmojiPicker
-              onEmojiClick={(e) =>
-                setMsg((prev) => prev + e.emoji)
-              }
-            />
+            <button onClick={() => setIncomingCall(false)}>
+              Reject
+            </button>
           </div>
         )}
 
+        {/* 📞 CALL SCREEN */}
+        {inCall && (
+          <div className="call-screen">
+            <h2>In Call...</h2>
+            <video autoPlay playsInline className="video-box"></video>
+            <button onClick={() => setInCall(false)}>End Call</button>
+          </div>
+        )}
+
+        {/* ✍️ TYPING */}
+        <div className="typing">{typing}</div>
+
+        <div ref={bottomRef}></div>
       </div>
+
+      {/* INPUT BAR */}
+      <div className="input-bar">
+
+        {/* EMOJI */}
+        <button
+          className="icon-btn"
+          onClick={() => setShowEmoji(!showEmoji)}
+        >
+          😊
+        </button>
+
+        {/* CAMERA */}
+        <button
+          className="icon-btn"
+          onClick={() => document.getElementById("imgInput").click()}
+        >
+          📷
+        </button>
+
+        <input
+          id="imgInput"
+          type="file"
+          accept="image/*"
+          style={{ display: "none" }}
+          onChange={(e) => {
+            setFile(e.target.files[0]);
+            sendImage();
+          }}
+        />
+
+        {/* TEXT */}
+        <input
+          value={msg}
+          onChange={handleTyping}
+          placeholder="Type message..."
+        />
+
+        {/* SEND */}
+        <button className="send-btn" onClick={sendMessage}>
+          ➤
+        </button>
+
+      </div>
+
+      {/* EMOJI PICKER */}
+      {showEmoji && (
+        <div style={{ position: "absolute", bottom: "70px" }}>
+          <EmojiPicker
+            onEmojiClick={(e) => setMsg((prev) => prev + e.emoji)}
+          />
+        </div>
+      )}
 
     </div>
   );
