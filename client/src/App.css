@@ -1,34 +1,6 @@
 body {
   margin: 0;
   font-family: 'Segoe UI', sans-serif;
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
-}
-
-/* LOGIN */
-.login {
-  position: fixed;
-  width: 100%;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.login-box {
-  width: 320px;
-  padding: 30px;
-  border-radius: 20px;
-  text-align: center;
-  color: white;
-  background: linear-gradient(270deg, #667eea, #764ba2, #ff6a00);
-  background-size: 400% 400%;
-  animation: gradientMove 6s infinite;
-}
-
-@keyframes gradientMove {
-  0% { background-position: 0% }
-  50% { background-position: 100% }
-  100% { background-position: 0% }
 }
 
 /* CHAT */
@@ -39,6 +11,7 @@ body {
   height: 100vh;
 }
 
+/* HEADER */
 .header {
   width: 100%;
   max-width: 450px;
@@ -48,6 +21,7 @@ body {
   text-align: center;
 }
 
+/* MESSAGES */
 .messages {
   width: 90%;
   max-width: 450px;
@@ -112,35 +86,22 @@ body {
 }
 
 /* BUTTONS */
-.icon-btn {
-  background: #f1f1f1;
-  border: none;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
+button {
+  cursor: pointer;
 }
 
-.send-btn {
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-}
-
-/* MIC */
 .mic-btn {
   width: 40px;
   height: 40px;
   border-radius: 50%;
   border: none;
-  cursor: pointer;
+  background: #f1f1f1;
 }
 
 .mic-btn.recording {
   background: red;
   color: white;
+  transform: scale(1.1);
 }
 
 /* DARK MODE */
@@ -159,17 +120,4 @@ body {
 
 .dark .bubble.other {
   background: #555;
-}
-
-/* CALL */
-.call-popup, .call-screen {
-  position: fixed;
-  background: white;
-  padding: 15px;
-}
-
-.video-box {
-  width: 300px;
-  height: 200px;
-  background: black;
 }
