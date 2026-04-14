@@ -9,14 +9,8 @@ function Chat({ user }) {
   const [showEmoji, setShowEmoji] = useState(false);
   const [typing, setTyping] = useState("");
   const [darkMode, setDarkMode] = useState(false);
-
   const [incomingCall, setIncomingCall] = useState(false);
   const [inCall, setInCall] = useState(false);
-
-  // 🎤 Voice recording
-  const [isRecording, setIsRecording] = useState(false);
-  const mediaRecorderRef = useRef(null);
-  const audioChunksRef = useRef([]);
 
   const bottomRef = useRef();
 
@@ -33,7 +27,7 @@ function Chat({ user }) {
       }
 
       if (data.typing) {
-        setTyping(data.user + " is typing...");
+        setTyping(`${data.user} is typing...`);
         setTimeout(() => setTyping(""), 1000);
         return;
       }
@@ -45,7 +39,7 @@ function Chat({ user }) {
     return () => ws.close();
   }, []);
 
-  // 🔽 SCROLL
+  // 🔽 AUTO SCROLL
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -58,7 +52,7 @@ function Chat({ user }) {
     setMsg("");
   };
 
-  // 📸 IMAGE
+  // 📸 SEND IMAGE
   const sendImage = () => {
     if (!file || !socket) return;
 
@@ -72,49 +66,10 @@ function Chat({ user }) {
   // ✍️ TYPING
   const handleTyping = (e) => {
     setMsg(e.target.value);
+
     if (socket?.readyState === 1) {
       socket.send(JSON.stringify({ user, typing: true }));
     }
-  };
-
-  // 🎤 START RECORD
-  const startRecording = async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
-    mediaRecorderRef.current = new MediaRecorder(stream);
-    audioChunksRef.current = [];
-
-    mediaRecorderRef.current.ondataavailable = (e) => {
-      audioChunksRef.current.push(e.data);
-    };
-
-    mediaRecorderRef.current.onstop = () => {
-      const audioBlob = new Blob(audioChunksRef.current, {
-        type: "audio/webm",
-      });
-
-      const reader = new FileReader();
-
-      reader.onloadend = () => {
-        socket?.send(
-          JSON.stringify({
-            user,
-            audio: reader.result,
-          })
-        );
-      };
-
-      reader.readAsDataURL(audioBlob);
-    };
-
-    mediaRecorderRef.current.start();
-    setIsRecording(true);
-  };
-
-  // ⏹ STOP RECORD
-  const stopRecording = () => {
-    mediaRecorderRef.current?.stop();
-    setIsRecording(false);
   };
 
   return (
@@ -124,9 +79,19 @@ function Chat({ user }) {
       <div className="header">
         <span>Chatify 💬</span>
 
-        <button onClick={() => setDarkMode(!darkMode)}>
-          {darkMode ? "☀️" : "🌙"}
-        </button>
+        <div className="header-buttons">
+          <button onClick={() => setDarkMode(!darkMode)}>
+            {darkMode ? "☀️" : "🌙"}
+          </button>
+
+          <button onClick={() => socket?.send(JSON.stringify({ call: "video" }))}>
+            🎥
+          </button>
+
+          <button onClick={() => socket?.send(JSON.stringify({ call: "audio" }))}>
+            📞
+          </button>
+        </div>
       </div>
 
       {/* MESSAGES */}
@@ -140,10 +105,14 @@ function Chat({ user }) {
 
               <div className={`bubble ${isMe ? "you" : "other"}`}>
                 <b>{m.user}</b>
+                <br />
 
                 {m.text && <p>{m.text}</p>}
-                {m.image && <img src={m.image} alt="" />}
-                {m.audio && <audio controls src={m.audio} />}
+                {m.image && <img src={m.image} alt="img" />}
+
+                {m.audio && (
+                  <audio controls src={m.audio} />
+                )}
               </div>
 
               {isMe && <div className="avatar">{user?.[0]}</div>}
@@ -180,24 +149,17 @@ function Chat({ user }) {
         />
 
         <button onClick={sendMessage}>➤</button>
-
-        {/* 🎤 MIC */}
-        <button
-          className={`mic-btn ${isRecording ? "recording" : ""}`}
-          onMouseDown={startRecording}
-          onMouseUp={stopRecording}
-          onTouchStart={startRecording}
-          onTouchEnd={stopRecording}
-        >
-          🎤
-        </button>
       </div>
 
       {/* EMOJI */}
       {showEmoji && (
-        <EmojiPicker
-          onEmojiClick={(e) => setMsg((prev) => prev + e.emoji)}
-        />
+        <div style={{ position: "absolute", bottom: "70px" }}>
+          <EmojiPicker
+            onEmojiClick={(e) =>
+              setMsg((prev) => prev + e.emoji)
+            }
+          />
+        </div>
       )}
     </div>
   );
