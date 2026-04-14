@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import Chat from "./Chat";
 import "./App.css";
-
 function App() {
   const [user, setUser] = useState("");
   const [name, setName] = useState("");
