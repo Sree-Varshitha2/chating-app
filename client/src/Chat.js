@@ -14,25 +14,31 @@ function Chat({ user }) {
 
   const bottomRef = useRef();
 
-  // 🔌 SOCKET
+  // 🔌 CONNECT WEBSOCKET
   useEffect(() => {
     const ws = new WebSocket("wss://chatting-app-7-ac7f.onrender.com");
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
 
+      // 📞 CALL
       if (data.call) {
         setIncomingCall(true);
         return;
       }
 
+      // ✍️ TYPING
       if (data.typing) {
-        setTyping(`${data.user} is typing...`);
+        setTyping(data.user + " is typing...");
         setTimeout(() => setTyping(""), 1000);
-        return;
-      }
+      } else {
+        setMessages((prev) => [...prev, data]);
 
-      setMessages((prev) => [...prev, data]);
+        const audio = new Audio(
+          "https://www.soundjay.com/buttons/sounds/button-3.mp3"
+        );
+        audio.play();
+      }
     };
 
     setSocket(ws);
@@ -46,10 +52,10 @@ function Chat({ user }) {
 
   // 💬 SEND TEXT
   const sendMessage = () => {
-    if (!socket || msg.trim() === "") return;
-
-    socket.send(JSON.stringify({ user, text: msg }));
-    setMsg("");
+    if (msg.trim() && socket?.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({ user, text: msg }));
+      setMsg("");
+    }
   };
 
   // 📸 SEND IMAGE
@@ -58,7 +64,12 @@ function Chat({ user }) {
 
     const reader = new FileReader();
     reader.onload = () => {
-      socket.send(JSON.stringify({ user, image: reader.result }));
+      socket.send(
+        JSON.stringify({
+          user,
+          image: reader.result,
+        })
+      );
     };
     reader.readAsDataURL(file);
   };
@@ -67,7 +78,7 @@ function Chat({ user }) {
   const handleTyping = (e) => {
     setMsg(e.target.value);
 
-    if (socket?.readyState === 1) {
+    if (socket) {
       socket.send(JSON.stringify({ user, typing: true }));
     }
   };
@@ -80,17 +91,31 @@ function Chat({ user }) {
         <span>Chatify 💬</span>
 
         <div className="header-buttons">
-          <button onClick={() => setDarkMode(!darkMode)}>
+
+          {/* 🌙 DARK MODE */}
+          <button
+            className="icon-btn"
+            onClick={() => setDarkMode(!darkMode)}
+          >
             {darkMode ? "☀️" : "🌙"}
           </button>
 
-          <button onClick={() => socket?.send(JSON.stringify({ call: "video" }))}>
+          {/* 🎥 VIDEO */}
+          <button
+            className="icon-btn"
+            onClick={() => socket?.send(JSON.stringify({ call: "video" }))}
+          >
             🎥
           </button>
 
-          <button onClick={() => socket?.send(JSON.stringify({ call: "audio" }))}>
+          {/* 📞 AUDIO */}
+          <button
+            className="icon-btn"
+            onClick={() => socket?.send(JSON.stringify({ call: "audio" }))}
+          >
             📞
           </button>
+
         </div>
       </div>
 
@@ -101,66 +126,105 @@ function Chat({ user }) {
 
           return (
             <div key={i} className={`msg-row ${isMe ? "right" : ""}`}>
-              {!isMe && <div className="avatar">{m.user?.[0]}</div>}
+              {!isMe && <div className="avatar">{m.user[0]}</div>}
 
               <div className={`bubble ${isMe ? "you" : "other"}`}>
-                <b>{m.user}</b>
-                <br />
-
-                {m.text && <p>{m.text}</p>}
+                <b>{isMe ? "You" : m.user}</b><br />
+                {m.text && <span>{m.text}</span>}
                 {m.image && <img src={m.image} alt="img" />}
-
-                {m.audio && (
-                  <audio controls src={m.audio} />
-                )}
               </div>
 
-              {isMe && <div className="avatar">{user?.[0]}</div>}
+              {isMe && <div className="avatar">{user[0]}</div>}
             </div>
           );
         })}
 
+        {/* 📞 INCOMING CALL */}
+        {incomingCall && !inCall && (
+          <div className="call-popup">
+            <p>📞 Incoming Call...</p>
+
+            <button onClick={() => {
+              setInCall(true);
+              setIncomingCall(false);
+            }}>
+              Accept
+            </button>
+
+            <button onClick={() => setIncomingCall(false)}>
+              Reject
+            </button>
+          </div>
+        )}
+
+        {/* 📞 CALL SCREEN */}
+        {inCall && (
+          <div className="call-screen">
+            <h2>In Call...</h2>
+            <video autoPlay playsInline className="video-box"></video>
+            <button onClick={() => setInCall(false)}>End Call</button>
+          </div>
+        )}
+
+        {/* ✍️ TYPING */}
+        <div className="typing">{typing}</div>
+
         <div ref={bottomRef}></div>
       </div>
 
-      {/* INPUT */}
+      {/* INPUT BAR */}
       <div className="input-bar">
 
-        <button onClick={() => setShowEmoji(!showEmoji)}>😊</button>
+        {/* EMOJI */}
+        <button
+          className="icon-btn"
+          onClick={() => setShowEmoji(!showEmoji)}
+        >
+          😊
+        </button>
 
-        <button onClick={() => document.getElementById("file").click()}>
+        {/* CAMERA */}
+        <button
+          className="icon-btn"
+          onClick={() => document.getElementById("imgInput").click()}
+        >
           📷
         </button>
 
         <input
-          id="file"
+          id="imgInput"
           type="file"
-          hidden
+          accept="image/*"
+          style={{ display: "none" }}
           onChange={(e) => {
             setFile(e.target.files[0]);
-            setTimeout(sendImage, 200);
+            sendImage();
           }}
         />
 
+        {/* TEXT */}
         <input
           value={msg}
           onChange={handleTyping}
           placeholder="Type message..."
         />
 
-        <button onClick={sendMessage}>➤</button>
+        {/* SEND */}
+        <button className="send-btn" onClick={sendMessage}>
+          ➤
+        </button>
+
       </div>
 
-      {/* EMOJI */}
+      {/* EMOJI PICKER */}
       {showEmoji && (
         <div style={{ position: "absolute", bottom: "70px" }}>
           <EmojiPicker
-            onEmojiClick={(e) =>
-              setMsg((prev) => prev + e.emoji)
-            }
+            onEmojiClick={(e) => setMsg((prev) => prev + e.emoji)}
           />
         </div>
       )}
+
     </div>
   );
 }
