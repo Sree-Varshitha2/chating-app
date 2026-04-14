@@ -56,7 +56,7 @@ function Chat({ user }) {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // 💬 SEND TEXT
+  // 💬 SEND MESSAGE
   const sendMessage = () => {
     if (!socket || socket.readyState !== 1) return;
 
@@ -143,6 +143,7 @@ function Chat({ user }) {
 
   return (
     <div className={darkMode ? "chat dark" : "chat"}>
+
       {/* HEADER */}
       <div className="header">
         <span>Chatify 💬</span>
@@ -154,18 +155,14 @@ function Chat({ user }) {
 
           <button
             className="icon-btn"
-            onClick={() =>
-              socket?.send(JSON.stringify({ call: "video" }))
-            }
+            onClick={() => socket?.send(JSON.stringify({ call: "video" }))}
           >
             🎥
           </button>
 
           <button
             className="icon-btn"
-            onClick={() =>
-              socket?.send(JSON.stringify({ call: "audio" }))
-            }
+            onClick={() => socket?.send(JSON.stringify({ call: "audio" }))}
           >
             📞
           </button>
@@ -198,7 +195,7 @@ function Chat({ user }) {
           );
         })}
 
-        {/* CALL POPUP */}
+        {/* CALL */}
         {incomingCall && !inCall && (
           <div className="call-popup">
             <p>📞 Incoming Call...</p>
@@ -230,17 +227,16 @@ function Chat({ user }) {
         <div ref={bottomRef}></div>
       </div>
 
-      {/* INPUT BAR */}
+      {/* INPUT */}
       <div className="input-bar">
+
         <button className="icon-btn" onClick={() => setShowEmoji(!showEmoji)}>
           😊
         </button>
 
         <button
           className="icon-btn"
-          onClick={() =>
-            document.getElementById("imgInput").click()
-          }
+          onClick={() => document.getElementById("imgInput").click()}
         >
           📷
         </button>
@@ -291,6 +287,7 @@ function Chat({ user }) {
           />
         </div>
       )}
+
     </div>
   );
 }
