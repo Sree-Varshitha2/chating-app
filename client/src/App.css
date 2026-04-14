@@ -322,3 +322,19 @@ body {
     height: 250px;
   }
 }
+.input-wrapper {
+  position: relative;
+}
+
+.input-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.emoji-popup {
+  position: absolute;
+  bottom: 60px;
+  left: 0;
+  z-index: 999;
+}
