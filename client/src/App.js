@@ -18,7 +18,7 @@ function App() {
       <div className="login-container">
         <div className="login-box">
           <h2>Chatify 💬</h2>
-          <p>Connect instantly</p>
+          <p>Connect instantly ✨</p>
 
           <input
             type="text"
