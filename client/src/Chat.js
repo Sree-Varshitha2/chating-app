@@ -88,11 +88,34 @@ function Chat({ user }) {
 
       {/* HEADER */}
       <div className="header">
-        Chatify 💬
+        <span>Chatify 💬</span>
 
         <div className="header-buttons">
-          <button onClick={() => socket?.send(JSON.stringify({ call: "video" }))}>🎥</button>
-          <button onClick={() => socket?.send(JSON.stringify({ call: "audio" }))}>📞</button>
+
+          {/* 🌙 DARK MODE */}
+          <button
+            className="icon-btn"
+            onClick={() => setDarkMode(!darkMode)}
+          >
+            {darkMode ? "☀️" : "🌙"}
+          </button>
+
+          {/* 🎥 VIDEO */}
+          <button
+            className="icon-btn"
+            onClick={() => socket?.send(JSON.stringify({ call: "video" }))}
+          >
+            🎥
+          </button>
+
+          {/* 📞 AUDIO */}
+          <button
+            className="icon-btn"
+            onClick={() => socket?.send(JSON.stringify({ call: "audio" }))}
+          >
+            📞
+          </button>
+
         </div>
       </div>
 
@@ -107,7 +130,6 @@ function Chat({ user }) {
 
               <div className={`bubble ${isMe ? "you" : "other"}`}>
                 <b>{isMe ? "You" : m.user}</b><br />
-
                 {m.text && <span>{m.text}</span>}
                 {m.image && <img src={m.image} alt="img" />}
               </div>
@@ -139,12 +161,8 @@ function Chat({ user }) {
         {inCall && (
           <div className="call-screen">
             <h2>In Call...</h2>
-
             <video autoPlay playsInline className="video-box"></video>
-
-            <button onClick={() => setInCall(false)}>
-              End Call
-            </button>
+            <button onClick={() => setInCall(false)}>End Call</button>
           </div>
         )}
 
@@ -165,7 +183,7 @@ function Chat({ user }) {
           😊
         </button>
 
-        {/* CAMERA (HIDDEN INPUT CLEAN UI) */}
+        {/* CAMERA */}
         <button
           className="icon-btn"
           onClick={() => document.getElementById("imgInput").click()}
