@@ -16,7 +16,7 @@ function Chat({ user }) {
 
   // SOCKET CONNECTION
   useEffect(() => {
-    const ws = new WebSocket("wss://chatting-app-7-ac7f.onrender.com");
+    const ws = new WebSocket("wss://chat-app-7-0twn.onrender.com");
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
