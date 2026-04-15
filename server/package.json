@@ -1,7 +1,7 @@
 {
-  "name": "chatting-app-server",
+  "name": "chat-backend",
   "version": "1.0.0",
-  "description": "WebSocket chat backend",
+  "description": "WebSocket backend for chat app",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
