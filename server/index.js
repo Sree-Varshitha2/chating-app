@@ -1,20 +1,18 @@
 const WebSocket = require("ws");
 
-const PORT = process.env.PORT || 8080;
-const wss = new WebSocket.Server({ port: PORT });
+const wss = new WebSocket.Server({ const PORT = process.env.PORT || 10000; });
 
 wss.on("connection", (ws) => {
   console.log("Client connected");
 
   ws.on("message", (message) => {
+    // broadcast to all users
     wss.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(message.toString());
+      if (client.readyState === 1) {
+        client.send(message);
       }
     });
   });
-
-  ws.on("close", () => console.log("Client disconnected"));
 });
 
-console.log("Server running on port", PORT);
+console.log("Server started");
