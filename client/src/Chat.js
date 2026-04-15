@@ -18,30 +18,35 @@ function Chat({ user }) {
   useEffect(() => {
     const ws = new WebSocket("wss://chat-app-7-0twn.onrender.com");
 
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
+ws.onopen = () => {
+  console.log("WebSocket connected");
+};
 
-      if (data.call) {
-        setIncomingCall(true);
-        return;
-      }
+ws.onerror = (e) => console.log("Socket error", e);
 
-      if (data.typing) {
-        setTyping(`${data.user} is typing...`);
-        setTimeout(() => setTyping(""), 1000);
-        return;
-      }
+ws.onclose = () => console.log("Socket closed");
 
-      setMessages((prev) => [...prev, data]);
-    };
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
 
-    ws.onerror = (e) => console.log("Socket error", e);
-    ws.onclose = () => console.log("Socket closed");
+  if (data.call) {
+    setIncomingCall(true);
+    return;
+  }
 
-    setSocket(ws);
+  if (data.typing) {
+    setTyping(data.user + " is typing...");
+    setTimeout(() => setTyping(""), 1000);
+    return;
+  }
 
-    return () => ws.close();
-  }, []);
+  setMessages((prev) => [...prev, data]);
+};
+
+setSocket(ws);
+
+return () => ws.close();
+
 
   // AUTO SCROLL
   useEffect(() => {
@@ -50,14 +55,18 @@ function Chat({ user }) {
 
   // SEND TEXT
   const sendMessage = () => {
-    if (!socket || socket.readyState !== 1) return;
+    if (!socket) return;
+    if (socket.readyState !== 1) {
+    console.log("Socket not connected");
+    return;
+  }
 
-    if (msg.trim()) {
-      socket.send(JSON.stringify({ user, text: msg }));
-      setMsg("");
-    }
-  };
-
+  if (msg.trim()) {
+    socket.send(JSON.stringify({ user, text: msg }));
+    setMsg("");
+  }
+};
+  
   // SEND IMAGE
   const sendImage = () => {
     if (!socket || !file) return;
